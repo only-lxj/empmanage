@@ -1,0 +1,251 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+<title>empMain</title>
+<style>
+body{
+	margin:0;
+	padding:0 150px;
+	font-size:16px;
+	font-family:Cambria, "Hoefler Text", "Liberation Serif", Times, "Times New Roman", serif;
+	background:#505658;
+	color:#fff;
+}
+#main{
+	position:relative;
+}
+#logo{
+	position:absolute;
+	left:50px;
+	top:20px;
+}
+#hexagon {
+	width: 80px; 
+	height: 45px; 
+	background: #b8c4cb;
+	position: relative;
+	text-align:center;
+	color:white;
+	font-size:18px;
+	line-height:45px;
+} 
+#hexagon:before { 
+	content: ""; 
+	position: absolute; 
+	top: -20px; 
+	left: 0; 
+	width: 0; 
+	height: 0; 
+	border-left: 40px solid transparent; 
+	border-right: 40px solid transparent; 
+	border-bottom: 20px solid #b8c4cb; 
+} 
+#hexagon:after { 
+	content: ""; 
+	position: absolute; 
+	bottom: -20px; 
+	left: 0; 
+	width: 0; 
+	height: 0; 
+	border-left: 40px solid transparent; 
+	border-right: 40px solid transparent; 
+	border-top: 20px solid #b8c4cb; 
+}
+#info{
+	position:absolute;
+	top:50px;
+	left:160px;
+}
+#info{
+	color:#fff;
+}
+#back{
+	position:absolute;
+	top:50px;
+	right:160px;
+}
+#back a{
+	color:#fff;
+	text-decoration:none;
+}
+#return{
+	position:absolute;
+	top:150px;
+	left:160px;
+}
+#return a{
+	font-size:24px;
+	color:#fff;
+	text-decoration:none;
+	cursor:pointer;
+}
+#return a span{
+	font-size:36px;
+}
+#manage{
+	position:absolute;
+	top:200px;
+	left:450px;
+}
+#manage a{
+	text-decoration:none;
+	color:#fff;
+}
+#manage table td{
+	height:40px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div id="main">
+    <div id="logo"> 
+        <div id="hexagon">
+            <p>LOGO</p>
+        </div>
+	</div>
+    
+    <div id="info">
+    	<?php
+    
+		echo "欢迎您,&nbsp; ".$_GET['name']." ！";
+		
+		?>
+    </div>  
+    <div id="back">
+    	<a href='login.php'>退出登录</a>
+    </div>
+    <div id="return">
+    	<a id="returnA" onClick="back();"><span>&laquo;</span>返回</a>
+    </div>
+    
+</div>
+
+<div id="manage">
+<?php
+
+//显示所有用户的信息
+//查询数据库
+error_reporting(E_ERROR | E_WARNING | E_PARSE);
+$conn=mysql_connect('localhost','root','') or die(mysql_error());
+
+mysql_query("set names utf8",$conn);
+mysql_select_db("empmanage",$conn);
+
+//分页
+$pageSize=5;    //每页信息数目
+$rowCount=0;    //总信息条数，从数据库获取
+$pageNow=1;     //用户指定，变量
+//根据用户的点击修改pageNow
+//判断是否有pageNow,没有默认第一页
+if(!empty($_GET['pageNow']))
+{
+	$pageNow=$_GET['pageNow'];
+}
+
+$pageCount=0;   //总页数，计算
+
+//$pageSize=3,显示第二页
+//$sql="select * from emp limit 3,3";
+
+$sql="select count(id) from emp";
+$res1=mysql_query($sql);
+//取出行数
+if($row=mysql_fetch_row($res1))
+{
+	$rowCount=$row[0];
+}
+//计算总页数
+$pageCount=ceil($rowCount/$pageSize);
+
+$sql="select * from emp limit ".($pageNow-1)*$pageSize.",$pageSize";
+$res2=mysql_query($sql,$conn);
+echo "<table border='1' bordercolor='#fff' cellspacing='0' width='600px'";
+echo "<tr>
+		<th>id</th>
+		<th>name</th>
+		<th>grade</th>
+		<th>email</th>
+		<th>salary</th>
+		<th>operate</th>
+	</tr>";
+//循环显示信息
+while($row=mysql_fetch_assoc($res2))
+{
+	echo "<tr>
+			<td>{$row['id']}</td>
+			<td>{$row['name']}</td>
+			<td>{$row['garde']}</td>
+			<td>{$row['email']}</td>
+			<td>{$row['salary']}</td>
+			<td><a href='#'>删除用户</a>&nbsp;&nbsp;&nbsp;<a href='#'>修改信息</a></td>
+		</tr>";
+}
+echo "<h1>员工信息列表</h1>";
+echo "</table>";
+
+parse_str($_SERVER["QUERY_STRING"]);
+echo "<br/>";
+//显示上一页
+if($pageNow>1)
+{
+	$prePage=$pageNow-1;
+	echo "<a href='empManage.php?name=$name&pageNow=$prePage' style='font-size:18px;'>上一页</a>&nbsp;&nbsp;";
+}
+//打印出页码超链接
+for($i=1;$i<=$pageCount;$i++)
+{
+	echo "&nbsp;<a href='empManage.php?name=$name&pageNow=$i' style='font-size:18px;'>$i</a>&nbsp;";
+}
+//显示下一页
+if($pageNow<$pageCount)
+{
+	$nextPage=$pageNow+1;
+	echo "&nbsp;&nbsp;<a href='empManage.php?name=$name&pageNow=$nextPage' style='font-size:18px;'>下一页</a>";
+}
+//显示当前页，总页数
+echo "&nbsp;&nbsp;<span style='font-size:20px;'>当前页&nbsp;{$pageNow}&nbsp;/共{$pageCount}页</span>";
+//指定跳转某页
+
+
+?>
+
+<form action="empManage.php?" style="padding-top:10px;">
+<input id="hidden" type="hidden" name="name" value="" />
+跳转到：第<input type="text" name="pageNow" style="width:30px;" />页
+<input type="submit" value="GO" />
+</form>
+
+<?php
+mysql_free_result($res2);
+mysql_close($conn);
+
+?>
+
+</div>
+
+
+
+
+<script type="text/javascript">
+
+function getQueryString(name) {
+	var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+	var r = window.location.search.substr(1).match(reg);
+	if (r != null) return unescape(r[2]); return null;
+}
+var hidden=document.getElementById("hidden");
+hidden.value=getQueryString("name");
+
+var returnA=document.getElementById("returnA");
+function back()
+{
+	window.location.href="empMain.php?name=" + getQueryString("name");
+}
+
+</script>
+
+</body>
+</html>
